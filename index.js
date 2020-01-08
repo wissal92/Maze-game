@@ -4,6 +4,8 @@ const cells = 3;
 const width = 600;
 const height = 600;
 
+const unitLength = width / cells;
+
 const engine = Engine.create();
 const {world} = engine;
 const render = Render.create({
@@ -29,13 +31,13 @@ const walls = [
 World.add(world, walls);
 
 //Random Shapes
-for(let i = 0; i < 50; i++){
-   if(Math.random() > 0.5){
-   World.add(world, Bodies.rectangle(Math.random() * width, Math.random() * height, 50, 50))
-   } else {
-       World.add(world, Bodies.circle(Math.random() * width, Math.random() * height, 35, 35))
-   }
-}
+// for(let i = 0; i < 50; i++){
+//    if(Math.random() > 0.5){
+//    World.add(world, Bodies.rectangle(Math.random() * width, Math.random() * height, 50, 50))
+//    } else {
+//        World.add(world, Bodies.circle(Math.random() * width, Math.random() * height, 35, 35))
+//    }
+// }
 
 //Maze generation
 const shuffle = arr => {
@@ -108,4 +110,23 @@ const stepThroughCell = (row, column) => {
 
 stepThroughCell(startRow, startColumn)
 
-//console.log(grid)
+//Drawing our cell in our canvas
+
+horizontals.forEach((row, rowIndex) => {
+   row.forEach((open, columnIndex) => {
+       if(open){
+           return;
+       }
+
+       const wall = Bodies.rectangle(
+           columnIndex * unitLength + unitLength / 2,
+           rowIndex * unitLength + unitLength,
+           unitLength,
+           10,
+           {
+               isStatic: true
+           }
+       );
+       World.add(world, wall)
+   });
+});

@@ -1,6 +1,6 @@
-const {Engine, Render, Runner, World, Bodies, Body} = Matter;
+const {Engine, Render, Runner, World, Bodies, Body, Events} = Matter;
 
-const cells = 16;
+const cells = 6;
 const width = 600;
 const height = 600;
 
@@ -124,7 +124,8 @@ horizontals.forEach((row, rowIndex) => {
            rowIndex * unitLength + unitLength,
            unitLength,
            5,
-           {
+           {   
+               label: 'wall',
                isStatic: true
            }
        );
@@ -143,7 +144,8 @@ verticals.forEach((row, rowIndex) => {
            rowIndex * unitLength + unitLength / 2,
            5,
            unitLength,
-           {
+           {   
+               label: 'wall',
                isStatic: true
            }
        );
@@ -158,13 +160,16 @@ const goal = Bodies.rectangle(
     unitLength * 0.7,
     unitLength * 0.7,
     {
-        isStatic: true
+        isStatic: true,
+        label: 'goal'
     }
 );
 World.add(world, goal)
 
 //Create Playing ball:
-const ball = Bodies.circle(unitLength / 2, unitLength / 2, unitLength / 4);
+const ball = Bodies.circle(unitLength / 2, unitLength / 2, unitLength / 4, {
+    label: 'ball'
+});
 World.add(world, ball);
 
 //moving the ball:
@@ -184,3 +189,20 @@ document.addEventListener('keydown', e =>{
         Body.setVelocity(ball, {x: x - 5, y});
     }
 })
+
+//Win condition
+Events.on(engine, 'collisionStart', e => {
+    e.pairs.forEach((collision) => {
+       const labels = ['ball', 'goal']
+
+      if(labels.includes(collision.bodyA.label) && labels.includes(collision.bodyB.label)){
+          //create an animation to tell the user that he has won the game:
+          world.gravity.y = 1;
+          world.bodies.forEach(body => {
+              if(body.label === 'wall'){
+                  Body.setStatic(body, false)
+              }
+          })
+      }
+    });
+});

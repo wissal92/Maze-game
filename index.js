@@ -1,10 +1,12 @@
 const {Engine, Render, Runner, World, Bodies, Body, Events} = Matter;
 
-const cells = 6;
-const width = 600;
-const height = 600;
+const cellsHorizontal = 14;
+const cellsVertical = 10;
+const width = window.innerWidth;
+const height = window.innerHeight;
 
-const unitLength = width / cells;
+const unitLengthX = width / cellsHorizontal;
+const unitLengthY = height / cellsVertical;
 
 const engine = Engine.create();
 engine.world.gravity.y = 0;
@@ -56,12 +58,12 @@ const shuffle = arr => {
     return arr;
 }
 
-const grid = Array(cells).fill(null).map(() => Array(cells).fill(false))
-const verticals =  Array(cells).fill(null).map(() => Array(cells - 1).fill(false));
-const horizontals = Array(cells - 1).fill(null).map(() => Array(cells).fill(false));
+const grid = Array(cellsVertical).fill(null).map(() => Array(cellsHorizontal).fill(false))
+const verticals =  Array(cellsVertical).fill(null).map(() => Array(cellsHorizontal - 1).fill(false));
+const horizontals = Array(cellsVertical - 1).fill(null).map(() => Array(cellsHorizontal).fill(false));
 
-const startRow = Math.floor(Math.random() * cells);
-const startColumn = Math.floor(Math.random() * cells);
+const startRow = Math.floor(Math.random() * cellsVertical);
+const startColumn = Math.floor(Math.random() * cellsHorizontal);
 
 const stepThroughCell = (row, column) => {
    //if the cell is vistied we just return:
@@ -85,7 +87,7 @@ const stepThroughCell = (row, column) => {
        const [nextRow, nextColumn, direction] = neighbor;
 
        //see if the neighbor is out of bounds
-       if(nextRow < 0 || nextRow >= cells || nextColumn < 0 || nextColumn >= cells){
+       if(nextRow < 0 || nextRow >= cellsVertical || nextColumn < 0 || nextColumn >= cellsHorizontal){
            continue;
        }
 
@@ -120,13 +122,16 @@ horizontals.forEach((row, rowIndex) => {
        }
 
        const wall = Bodies.rectangle(
-           columnIndex * unitLength + unitLength / 2,
-           rowIndex * unitLength + unitLength,
-           unitLength,
+           columnIndex * unitLengthX + unitLengthX / 2,
+           rowIndex * unitLengthY + unitLengthY,
+           unitLengthX,
            5,
            {   
                label: 'wall',
-               isStatic: true
+               isStatic: true,
+               render: {
+                   fillStyle: '#f1f1f1'
+               }
            }
        );
        World.add(world, wall)
@@ -140,13 +145,16 @@ verticals.forEach((row, rowIndex) => {
        }
 
        const wall = Bodies.rectangle(
-           columnIndex * unitLength + unitLength,
-           rowIndex * unitLength + unitLength / 2,
+           columnIndex * unitLengthX + unitLengthX,
+           rowIndex * unitLengthY + unitLengthY / 2,
            5,
-           unitLength,
+           unitLengthY,
            {   
                label: 'wall',
-               isStatic: true
+               isStatic: true,
+               render: {
+                fillStyle: '#f1f1f1'
+            }
            }
        );
        World.add(world, wall)
@@ -155,20 +163,27 @@ verticals.forEach((row, rowIndex) => {
 
 //Create our goal:
 const goal = Bodies.rectangle(
-    width - unitLength / 2,
-    height - unitLength / 2,
-    unitLength * 0.7,
-    unitLength * 0.7,
+    width - unitLengthX / 2,
+    height - unitLengthY / 2,
+    unitLengthX * 0.7,
+    unitLengthY * 0.7,
     {
         isStatic: true,
-        label: 'goal'
+        label: 'goal',
+        render: {
+            fillStyle: 'green'
+        }
     }
 );
 World.add(world, goal)
 
 //Create Playing ball:
-const ball = Bodies.circle(unitLength / 2, unitLength / 2, unitLength / 4, {
-    label: 'ball'
+const ballRadius = Math.min(unitLengthX, unitLengthY) / 4;
+const ball = Bodies.circle(unitLengthX / 2, unitLengthY / 2, ballRadius, {
+    label: 'ball',
+    render: {
+        fillStyle: 'red'
+    }
 });
 World.add(world, ball);
 
@@ -197,6 +212,7 @@ Events.on(engine, 'collisionStart', e => {
 
       if(labels.includes(collision.bodyA.label) && labels.includes(collision.bodyB.label)){
           //create an animation to tell the user that he has won the game:
+          document.querySelector('.winner').classList.remove('hidden');
           world.gravity.y = 1;
           world.bodies.forEach(body => {
               if(body.label === 'wall'){
